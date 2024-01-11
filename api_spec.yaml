@@ -1,0 +1,122 @@
+openapi: 3.0.0
+info:
+  title: AniList GraphQL API
+  description: AniList GraphQL API for accessing anime and manga data.
+  version: 1.0.0
+servers:
+  - url: https://graphql.anilist.co
+    description: AniList GraphQL API endpoint
+paths:
+  /:
+    post:
+      operationId: graphqlOperation
+      summary: Executes a GraphQL operation (query or mutation)
+      description: Sends a GraphQL query or mutation to the AniList API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: The GraphQL query or mutation string.
+                variables:
+                  type: object
+                  additionalProperties: true
+                  description: Variables for the GraphQL query or mutation.
+                  properties:
+                    userId:
+                      type: integer
+                      description: The ID of the user.
+                    mediaId:
+                      type: integer
+                      description: The ID of the media.
+                    status:
+                      type: string
+                      description: The status of the media in the user's list.
+                      enum:
+                        - CURRENT
+                        - PLANNING
+                        - COMPLETED
+                        - DROPPED
+                        - PAUSED
+                        - REPEATING
+      responses:
+        "200":
+          description: Successful response with data from AniList API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: The data returned by the API in response to the query or mutation.
+      x-examples:
+        fetchUserAnimeListsById:
+          summary: Fetch a user's anime lists using their ID
+          value:
+            query: |
+              query ($userId: Int) { 
+                MediaListCollection(userId: $userId, type: ANIME){
+                  lists{
+                    name,
+                    entries{
+                      score,
+                      media{
+                        title{
+                          english
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            variables:
+              userId: 123
+        fetchUserMangaListsById:
+          summary: Fetch a user's manga lists using their ID
+          value:
+            query: |
+              query ($userId: Int) { 
+                MediaListCollection(userId: $userId, type: MANGA){
+                  lists{
+                    name,
+                    entries{
+                      score,
+                      media{
+                        title{
+                          english
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            variables:
+              userId: 123
+        getCurrentUserId:
+          summary: Get the currently logged-in user's ID
+          value:
+            query: |
+              {
+                Viewer {
+                  id
+                }
+              }
+            variables: {}
+        saveOrUpdateMediaListEntry:
+          summary: Save or update an anime in the user's list
+          value:
+            query: |
+              mutation ($mediaId: Int, $status: MediaListStatus) {
+                SaveMediaListEntry (mediaId: $mediaId, status: $status) {
+                    id
+                    status
+                }
+              }
+            variables:
+              mediaId: 12345
+              status: CURRENT
